@@ -102,6 +102,7 @@ echo
 SEAFILE_ADMIN=admin@seafile.local
 SEAFILE_SERVER_USER=seafile
 SEAFILE_SERVER_HOME=/opt/seafile
+# FIXME
 IP_OR_DOMAIN=$(hostname -i)
 SEAFILE_VERSION=$1
 TIME_ZONE=Europe/Berlin
@@ -186,9 +187,15 @@ subjectAltName = @alt_names
 DNS.1 = localhost
 DNS.2 = $(hostname -f)
 DNS.3 = $(hostname -s)
-IP.1 = 127.0.0.1
-IP.2 = $(hostname -i)
 EOF
+
+counter=1
+for x in $(printf "127.0.0.1 $(hostname -I)")
+do
+  printf "IP.$counter = $x\n" >> /etc/nginx/ssl/seafile.cnf
+  let counter=$counter+1
+done
+
 openssl req -new -x509 -key /etc/nginx/ssl/seafile.key -out /etc/nginx/ssl/seafile.crt -days 10950 -config /etc/nginx/ssl/seafile.cnf -sha256
 
 rm /etc/nginx/sites-enabled/*
@@ -408,6 +415,7 @@ mkdir -p ${DEFAULT_CONF_DIR}
 ./setup-seafile-mysql.sh auto -u seafile -w ${SQLSEAFILEPW} -r ${SQLROOTPW}
 
 # Fix service url
+# FIXME
 eval "sed -i 's/^SERVICE_URL.*/SERVICE_URL = https:\/\/${IP_OR_DOMAIN}/' ${DEFAULT_CONF_DIR}/ccnet.conf"
 
 # -------------------------------------------
@@ -438,6 +446,7 @@ CACHES = {
 # SERVER_EMAIL                        = EMAIL_HOST_USER
 
 TIME_ZONE                           = '${TIME_ZONE}'
+# FIXME
 SITE_BASE                           = 'https://${IP_OR_DOMAIN}'
 SITE_NAME                           = 'Seafile Server'
 SITE_TITLE                          = 'Seafile Server'
@@ -452,6 +461,7 @@ SESSION_COOKIE_AGE                  = 60 * 60 * 24 * 7 * 2
 SESSION_SAVE_EVERY_REQUEST          = False
 SESSION_EXPIRE_AT_BROWSER_CLOSE     = False
 
+# FIXME
 FILE_SERVER_ROOT                    = 'https://${IP_OR_DOMAIN}/seafhttp'
 EOF
 
@@ -511,7 +521,7 @@ cat > ${TOPDIR}/aio_seafile-server.log<<EOF
   Your Seafile server is installed
   -----------------------------------------------------------------
 
-  Server Address:      https://${IP_OR_DOMAIN}
+  Server Address:      https://${IP_OR_DOMAIN} # FIXME
 
   Seafile Admin:       ${SEAFILE_ADMIN}
   Admin Password:      ${SEAFILE_ADMIN_PW}
